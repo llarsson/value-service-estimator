@@ -14,6 +14,7 @@ import (
 
 const (
 	upstreamAddrKey = "VALUE_SERVICE_ADDR"
+	csvFileName     = "data.csv"
 )
 
 func main() {
@@ -27,8 +28,14 @@ func main() {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
+	csvFile, err := os.Create(csvFileName)
+	if err != nil {
+		log.Fatalf("Could not open CSV file (%s) for writing", csvFileName)
+	}
+	defer csvFile.Close()
+
 	estimator := new(interceptors.ConfigurableValidityEstimator)
-	estimator.Initialize()
+	estimator.Initialize(log.New(csvFile, "", 0))
 
 	grpcServer := grpc.NewServer(grpc.UnaryInterceptor(estimator.UnaryServerInterceptor()))
 
